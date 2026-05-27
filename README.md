@@ -285,33 +285,11 @@ Client → API Route → Auth Middleware → Controller → Service → MongoDB
 
 The items below represent planned work. Nothing in this section is implemented yet.
 
-### Near-term
+
 - Automated scheduled rank checks (daily/weekly cron)
 - Rank change alerts via email
 - Batch keyword import (CSV)
 - Competitor keyword monitoring
-
-### Mid-term
-- Custom configurable dashboards
-- Search volume data via Google Search Console API
-- Docker + docker-compose setup
-- CI/CD pipeline (GitHub Actions)
-- Redis caching layer for repeated analyses
-- API rate limiting
-
-### Long-term
-- Predictive rank analytics via fine-tuned models
-- AI-generated weekly/monthly SEO reports
-- Multi-user team workspaces with role management
-- OAuth2 / SSO support
-- React Native mobile client
-- Self-hosted deployment option
-
-### Technical Debt
-- Unit test coverage (Jest + React Testing Library)
-- End-to-end tests (Playwright)
-- Full API documentation (OpenAPI/Swagger)
-- Application performance monitoring
 
 ---
 
