@@ -1,4 +1,4 @@
-import KeywordTracking from "../models/keywordTracking";
+import KeywordTracking from "../models/keywordTracking.js";
 import { keywordTracking } from "../services/keywordTrackingService.js";
 
 // Add a keyword to track
@@ -7,57 +7,111 @@ export const addKeyword = async (req, res) => {
         const { keyword, url } = req.body;
 
         if (!keyword || !url) {
-            return res.status(400).json({ success: false, message: "Keyword and URL are required" });
+            return res.status(400).json({
+                success: false,
+                message: "Keyword and URL are required"
+            });
         }
 
-        // Sanitize keyword
         const trimmedKeyword = keyword.trim();
+
         if (!trimmedKeyword || trimmedKeyword.length > 100) {
-            return res.status(400).json({ success: false, message: "Keyword must be between 1 and 100 characters" });
+            return res.status(400).json({
+                success: false,
+                message: "Keyword must be between 1 and 100 characters"
+            });
         }
 
-        // Validate and normalize URL
         let domain, normalizedUrl;
+
         try {
-            const parsedUrl = new URL(url.startsWith('http') ? url : `http://${url}`);
-            parsedUrl.hostname = parsedUrl.hostname.toLowerCase();
+            const parsedUrl = new URL(
+                url.startsWith("http")
+                    ? url
+                    : `http://${url}`
+            );
+
+            parsedUrl.hostname =
+                parsedUrl.hostname.toLowerCase();
+
             normalizedUrl = parsedUrl.toString();
+
             domain = parsedUrl.hostname;
+
         } catch {
-            return res.status(400).json({ success: false, message: "Invalid URL format" });
+            return res.status(400).json({
+                success: false,
+                message: "Invalid URL format"
+            });
         }
 
-        const existingTracking = await KeywordTracking.findOne({ userId: req.user._id, keyword: trimmedKeyword.toLowerCase(), domain });
+        const existingTracking =
+            await KeywordTracking.findOne({
+                userId: req.user._id,
+                keyword: trimmedKeyword.toLowerCase(),
+                domain
+            });
 
-        if(existingTracking) {
-            return res.status(400).json({ success: false, message: "You are already tracking this keyword for the specified URL" });
+        if (existingTracking && existingTracking.active) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    "You are already tracking this keyword for the specified URL"
+            });
         }
-        else if (existingTracking && !existingTracking.active) {
+
+        if (existingTracking && !existingTracking.active) {
+
             existingTracking.active = true;
+
             await existingTracking.save();
-            return res.status(200).json({ success: true, message: "Keyword tracking reactivated", tracking: existingTracking });
+
+            return res.status(200).json({
+                success: true,
+                message: "Keyword tracking reactivated",
+                tracking: existingTracking
+            });
         }
-        else {
-            const newTracking = await new KeywordTracking.create({
+
+        const newTracking =
+            await KeywordTracking.create({
                 userId: req.user._id,
                 keyword: trimmedKeyword.toLowerCase(),
                 url: normalizedUrl,
                 domain,
-                status: 'checking'
+                status: "checking"
+            });
+
+        res.status(201).json({
+            success: true,
+            message: "Keyword added for tracking",
+            tracking: newTracking
+        });
+
+        keywordTracking(newTracking);
+
+    } catch (error) {
+
+        console.error(
+            "Error adding keyword:",
+            error.message
+        );
+
+        if (error.code === 11000) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Already tracking this keyword"
             });
         }
 
-        res.status(201).json({ success: true, message: "Keyword added for tracking", tracking: newTracking });
-        keywordTracking(newTracking);
-    } catch (error) {
-        console.error("Error adding keyword:", error.message);
-        if(error.code === 11000) {
-            return res.status(400).json({success: false, message: "Already tracking this keyword"})
-        }
-        res.status(500).json({ success: false,  message: "Server error while adding keyword" });
+        res.status(500).json({
+            success: false,
+            message:
+                "Server error while adding keyword"
+        });
     }
-}
-
+};
 //Get all tracked keywords for a user
 export const getTrackedKeywords = async (req, res) => {
     try {

@@ -1,6 +1,6 @@
 import express from "express";
 import { addKeyword, getTrackedKeywords, getSingleKeyword, refreshKeyword, deleteKeyword, toggleTrackingStatus } from "../controllers/rankController.js";
-import auth from "../middleware/authMiddleware.js";
+import auth from "../middlewares/auth.js";
 
 const rankRouter = express.Router();
 
